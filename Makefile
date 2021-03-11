@@ -5,8 +5,9 @@
 
 # compiler options
 #--------------------------------------------
-CC = g++
-CFLAGS = -Wall -g
+CC = g++ -std=c++11
+CFLAGS = -O3
+# -Wall -g 
 LDFLAGS = -lstdc++
 
 # project files

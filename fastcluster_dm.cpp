@@ -603,7 +603,7 @@ static void NN_chain_core(const t_index N, t_float * const D, t_members * const 
   #endif
 
   for (t_index j=0; j<N-1; ++j) {
-    if (NN_chain_tip <= 3) {
+    if (NN_chain_tip <= 3) {//start the chain
       NN_chain[0] = idx1 = active_nodes.start;
       NN_chain_tip = 1;
 
@@ -642,7 +642,7 @@ static void NN_chain_core(const t_index N, t_float * const D, t_members * const 
       idx2 = idx1;
       idx1 = NN_chain[NN_chain_tip++];
 
-    } while (idx2 != NN_chain[NN_chain_tip-2]);
+    } while (idx2 != NN_chain[NN_chain_tip-2]); // grow chain until RNN is found
 
     Z2.append(idx1, idx2, min);
 

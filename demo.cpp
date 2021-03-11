@@ -16,52 +16,15 @@
 #include <algorithm>
 
 #include "fastcluster.h"
+#include "IO.h"
+#include "gettime.h"
 
-
-// 2D point or vector
-class Point {
-public:
-  double x;
-  double y;
-  Point(double xx=0.0, double yy=0.0) { x=xx; y=yy; }
-  Point(const Point& p) { x=p.x; y=p.y; }
-  double norm() { return(sqrt(x*x + y*y)); }
-};
-
-// line segment
-class Segment {
-public:
-  Point p1;
-  Point p2;
-  Point dir;
-  Segment(const Point p, const Point q) { p1=p, p2=q; dir=direction(); }
-  Segment(const Segment& s) { p1=s.p1, p2=s.p2; dir=direction(); }
-private:
-  Point direction() {
-    Point d(p2.x-p1.x, p2.y-p1.y);
-    double n = d.norm();
-    if (n > 0.0) {
-      d.x /= n; d.y /= n;
-    }
-    return d;
-  }
-};
-
-// line segment distance (cosine dissimilarity)
-double distance(const Segment& s1, const Segment& s2) {
-  double sprod = s1.dir.x*s2.dir.x + s1.dir.y*s2.dir.y;
-  double d = 1 - sprod*sprod;
-  if (d < 0.0)
-    return 0;
-  else
-    return d;
-}
-
+#define dim 128
 
 // main program
 int main(int argc, char** argv)
 {
-
+    timer t1;t1.start();
   int i,j,k,npoints;
 
   // parse command line
@@ -102,57 +65,39 @@ int main(int argc, char** argv)
     return 1;
   }
   
-  // read line segments from input file
-  std::vector<Segment> segs;
-  double x1,x2,y1,y2;
-  FILE* f = fopen(opt_infile.c_str(), "r");
-  if (!f) {
-    fprintf(stderr, "Cannot open '%s'\n", opt_infile.c_str());
-    return 2;
-  }
-  npoints = 0;
-  while (!feof(f)) {
-    npoints++;
-    k = fscanf(f, "%lf,%lf,%lf,%lf\n", &x1, &x2, &y1, &y2);
-    if (k != 4) {
-      fprintf(stderr, "Error in line %i of '%s': wrong format\n", npoints, argv[1]);
-      return 3;
+
+  _seq<point<dim> > PIn = readPointsFromFileNoHeader<point<dim>>(&opt_infile[0]);
+    npoints = PIn.n;
+    std::cout << npoints << std::endl;
+
+    // computation of condensed distance matrix
+    double* distmat = new double[(npoints*(npoints-1))/2];
+    k = 0;
+    for (i=0; i<npoints; i++) {
+        for (j=i+1; j<npoints; j++) {
+            distmat[k] = PIn.A[i].pointDist(PIn.A[j]);
+            k++;
+        }
     }
-    segs.push_back(Segment(Point(x1,x2), Point(y1,y2)));
-  }
-  fclose(f);
-
-  // computation of condensed distance matrix
-  double* distmat = new double[(npoints*(npoints-1))/2];
-  k = 0;
-  for (i=0; i<npoints; i++) {
-    for (j=i+1; j<npoints; j++) {
-      distmat[k] = distance(segs[i], segs[j]);
-      k++;
-    }
-  }
-
-  // clustering call
-  int* merge = new int[2*(npoints-1)];
-  double* height = new double[npoints-1];
-  hclust_fast(npoints, distmat, opt_method, merge, height);
-
-  int* labels = new int[npoints];
-  cutree_k(npoints, merge, 2, labels);
-  //cutree_cdist(npoints, merge, height, 0.5, labels);
-  
-  // print result
-  for (i=0; i<npoints; i++) {
-    printf("%3.2f,%3.2f,%3.2f,%3.2f,%i\n",
-           segs[i].p1.x, segs[i].p1.y, segs[i].p2.x, segs[i].p2.y, labels[i]);
-  }
-  
-  // clean up
-  delete[] distmat;
-  delete[] merge;
-  delete[] height;
-  delete[] labels;
-
-  
+    free(PIn.A);
+    std::cout << "matrix " <<  t1.next() << std::endl;
+    
+    // clustering call
+    int* merge = new int[2*(npoints-1)];
+    double* height = new double[npoints-1];
+    hclust_fast(npoints, distmat, opt_method, merge, height);
+    std::cout << "hierarchy " <<  t1.next() << std::endl;
+    
+    int* labels = new int[npoints];
+    cutree_k(npoints, merge, 2, labels);
+    std::cout << "cut " <<  t1.next() << std::endl;
+    //cutree_cdist(npoints, merge, height, 0.5, labels);
+    
+    // clean up
+    delete[] distmat;
+    delete[] merge;
+    delete[] height;
+    delete[] labels;
+    
   return 0;
 }
