@@ -148,6 +148,13 @@ int hclust_fast(int n, double* distmat, int method, int* merge, double* height) 
     NN_chain_core<METHOD_METR_AVERAGE, t_float>(n, distmat, members, Z2);
     delete[] members;
   }
+  else if (method == HCLUST_METHOD_WARD) {
+    // best ward distance
+    double* members = new double[n];
+    for (int i=0; i<n; i++) members[i] = 1;
+    NN_chain_core<METHOD_METR_WARD, t_float>(n, distmat, members, Z2);
+    delete[] members;
+  }
   else if (method == HCLUST_METHOD_MEDIAN) {
     // best median distance (beware: O(n^3))
     generic_linkage<METHOD_METR_MEDIAN, t_float>(n, distmat, NULL, Z2);

@@ -19,13 +19,14 @@
 #include "IO.h"
 #include "gettime.h"
 
-#define dim 128
+#define dim 10
 
 // main program
 int main(int argc, char** argv)
 {
     timer t1;t1.start();
-  int i,j,k,npoints;
+  int i,j,npoints;
+  long k;
 
   // parse command line
   std::string opt_infile;
@@ -43,6 +44,8 @@ int main(int argc, char** argv)
             opt_method = HCLUST_METHOD_AVERAGE;
         else if (0 == strcmp(argv[i], "median"))
             opt_method = HCLUST_METHOD_MEDIAN;
+        else if (0 == strcmp(argv[i], "ward"))
+            opt_method = HCLUST_METHOD_WARD;
         else {
           fputs(usagemsg, stderr);
           return 1;
@@ -71,7 +74,8 @@ int main(int argc, char** argv)
     std::cout << npoints << std::endl;
 
     // computation of condensed distance matrix
-    double* distmat = new double[(npoints*(npoints-1))/2];
+    long distmat_size = ((long)npoints/2*(npoints-1));
+    double* distmat = new double[distmat_size];//(double *)malloc(distmat_size * sizeof(double));//
     k = 0;
     for (i=0; i<npoints; i++) {
         for (j=i+1; j<npoints; j++) {
@@ -92,6 +96,12 @@ int main(int argc, char** argv)
     cutree_k(npoints, merge, 2, labels);
     std::cout << "cut " <<  t1.next() << std::endl;
     //cutree_cdist(npoints, merge, height, 0.5, labels);
+
+    double cost = 0;
+    for (i=0; i<npoints-1; i++) {
+      cost += height[i];
+    }
+    std::cout << std::setprecision(10) << "cost " <<  cost << std::endl;
     
     // clean up
     delete[] distmat;

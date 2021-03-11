@@ -6,7 +6,7 @@
 # compiler options
 #--------------------------------------------
 CC = g++ -std=c++11
-CFLAGS = -O3
+CFLAGS = -g
 # -Wall -g 
 LDFLAGS = -lstdc++
 
