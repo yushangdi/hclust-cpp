@@ -518,7 +518,8 @@ inline static void f_weighted( t_float * const b, const t_float a) {
   #endif
 }
 inline static void f_ward( t_float * const b, const t_float a, const t_float c, const t_float s, const t_float t, const t_float v) {
-  *b = ( (v+s)*a - v*c + (v+t)*(*b) ) / (s+t+v);
+  // *b = ( (v+s)*a - v*c + (v+t)*(*b) ) / (s+t+v);
+  *b = sqrt(( (v+s)*(a*a) - v*(c*c) + (v+t)*(*b)*(*b) ) / (s+t+v));
   //*b = a+(*b)-(t*a+s*(*b)+v*c)/(s+t+v);
   #ifndef FE_INVALID
 #if HAVE_DIAGNOSTIC
@@ -758,7 +759,7 @@ static void NN_chain_core(const t_index N, t_float * const D, t_members * const 
 
     default:
       throw std::runtime_error(std::string("Invalid method."));
-    }
+    }//method end
   }
   #ifdef FE_INVALID
   if (fetestexcept(FE_INVALID)) throw fenv_error();
