@@ -141,7 +141,7 @@ int hclust_fast(int n, double* distmat, int method, int* merge, double* height) 
     // complete link
     NN_chain_core<METHOD_METR_COMPLETE, t_float>(n, distmat, NULL, Z2);
   }
-  else if (method == HCLUST_METHOD_AVERAGE) {
+  else if (method == HCLUST_METHOD_AVERAGE || method == HCLUST_METHOD_AVERAGE2) {
     // best average distance
     double* members = new double[n];
     for (int i=0; i<n; i++) members[i] = 1;

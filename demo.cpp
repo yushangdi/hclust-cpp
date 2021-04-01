@@ -42,6 +42,8 @@ int main(int argc, char** argv)
             opt_method = HCLUST_METHOD_COMPLETE;
         else if (0 == strcmp(argv[i], "average"))
             opt_method = HCLUST_METHOD_AVERAGE;
+        else if (0 == strcmp(argv[i], "average2"))
+            opt_method = HCLUST_METHOD_AVERAGE2;
         else if (0 == strcmp(argv[i], "median"))
             opt_method = HCLUST_METHOD_MEDIAN;
         else if (0 == strcmp(argv[i], "ward"))
@@ -77,12 +79,24 @@ int main(int argc, char** argv)
     long distmat_size = ((long)npoints/2*(npoints-1));
     double* distmat = new double[distmat_size];//(double *)malloc(distmat_size * sizeof(double));//
     k = 0;
-    for (i=0; i<npoints; i++) {
+    if(opt_method == HCLUST_METHOD_AVERAGE2){
+      for (i=0; i<npoints; i++) {
+          for (j=i+1; j<npoints; j++) {
+            double pdist = PIn.A[i].pointDist(PIn.A[j]);
+              distmat[k] = pdist*pdist;
+              k++;
+          }
+      }
+    }else{
+      for (i=0; i<npoints; i++) {
         for (j=i+1; j<npoints; j++) {
-            distmat[k] = PIn.A[i].pointDist(PIn.A[j]);
+          double pdist = PIn.A[i].pointDist(PIn.A[j]);
+            distmat[k] = pdist;
             k++;
         }
     }
+    }
+
     free(PIn.A);
     std::cout << "matrix " <<  t1.next() << std::endl;
     
@@ -92,14 +106,20 @@ int main(int argc, char** argv)
     hclust_fast(npoints, distmat, opt_method, merge, height);
     std::cout << "hierarchy " <<  t1.next() << std::endl;
     
-    int* labels = new int[npoints];
-    cutree_k(npoints, merge, 2, labels);
-    std::cout << "cut " <<  t1.next() << std::endl;
+    // int* labels = new int[npoints];
+    // cutree_k(npoints, merge, 2, labels);
+    // std::cout << "cut " <<  t1.next() << std::endl;
     //cutree_cdist(npoints, merge, height, 0.5, labels);
 
     double cost = 0;
+    if(opt_method == HCLUST_METHOD_AVERAGE2){
     for (i=0; i<npoints-1; i++) {
-      cost += height[i];
+      cost += sqrt(height[i]);
+    }}
+    else{
+      for (i=0; i<npoints-1; i++) {
+        cost += height[i];
+      }
     }
     std::cout << std::setprecision(10) << "cost " <<  cost << std::endl;
     
@@ -107,7 +127,7 @@ int main(int argc, char** argv)
     delete[] distmat;
     delete[] merge;
     delete[] height;
-    delete[] labels;
+    // delete[] labels;
     
   return 0;
 }

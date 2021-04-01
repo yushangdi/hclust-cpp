@@ -489,6 +489,7 @@ inline static void f_complete( t_float * const b, const t_float a ) {
 }
 inline static void f_average( t_float * const b, const t_float a, const t_float s, const t_float t) {
   *b = s*a + t*(*b);
+  // *b = sqrt(s*a*a + t*(*b)*(*b));
   #ifndef FE_INVALID
 #if HAVE_DIAGNOSTIC
 #pragma GCC diagnostic push
@@ -610,6 +611,7 @@ static void NN_chain_core(const t_index N, t_float * const D, t_members * const 
 
       idx2 = active_nodes.succ[idx1];
       min = D_(idx1,idx2);
+      // find min, parallelize
       for (i=active_nodes.succ[idx2]; i<N; i=active_nodes.succ[i]) {
         if (D_(idx1,i) < min) {
           min = D_(idx1,i);
@@ -627,12 +629,14 @@ static void NN_chain_core(const t_index N, t_float * const D, t_members * const 
     do {
       NN_chain[NN_chain_tip] = idx2;
 
+      // find min, parallelize
       for (i=active_nodes.start; i<idx2; i=active_nodes.succ[i]) {
         if (D_(i,idx2) < min) {
           min = D_(i,idx2);
           idx1 = i;
         }
       }
+      // find min, parallelize
       for (i=active_nodes.succ[idx2]; i<N; i=active_nodes.succ[i]) {
         if (D_(idx2,i) < min) {
           min = D_(idx2,i);
@@ -663,6 +667,7 @@ static void NN_chain_core(const t_index N, t_float * const D, t_members * const 
     // Remove the smaller index from the valid indices (active_nodes).
     active_nodes.remove(idx1);
 
+    //update matrix, parallelize
     switch (method) {
     case METHOD_METR_SINGLE:
       /*

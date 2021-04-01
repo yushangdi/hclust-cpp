@@ -68,7 +68,8 @@ enum hclust_fast_methods {
   // complete link with the nearest-neighbor-chain algorithm (Murtagh, 1984)
   HCLUST_METHOD_COMPLETE = 1,
   // average link with the nearest-neighbor-chain algorithm (Murtagh, 1984)
-  HCLUST_METHOD_AVERAGE = 2,
+  HCLUST_METHOD_AVERAGE = 2, // norm = 1
+  HCLUST_METHOD_AVERAGE2 = 5, //norm = 2
   // median link with the generic algorithm (Müllner, 2011)
   HCLUST_METHOD_MEDIAN = 3,
   // ward link with the generic algorithm (Müllner, 2011)
